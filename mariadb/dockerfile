@@ -1,0 +1,21 @@
+FROM debian:latest
+
+RUN apt-get update -y && apt-get install -y mariadb-server mariadb-client gettext-base
+
+# here for the bind-address, otherwise db won't accept connections
+COPY ./config/custom.cnf /etc/mysql/mariadb.conf.d/custom.cnf
+RUN chmod 644 /etc/mysql/mariadb.conf.d/custom.cnf
+
+# initialize database according to env vars
+COPY ./config /config
+RUN chmod +x /config/init.sh
+
+EXPOSE 3306
+
+HEALTHCHECK --start-period=5m CMD mariadb -u root -p"$DB_ROOT_PASSWORD" -e 'SELECT @@datadir;' || exit 1
+
+#HEALTHCHECK --start-period=5m CMD mariadb -u root -p"$DB_ROOT_PASSWORD" -e 'SELECT 1;' || exit 1
+
+#HEALTHCHECK --start-period=5m CMD mariadb -e 'SELECT @@datadir;' || exit 1
+
+CMD ["/config/init.sh"]

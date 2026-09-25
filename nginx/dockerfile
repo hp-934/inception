@@ -1,0 +1,17 @@
+FROM alpine:latest
+
+RUN apk add --no-cache openssl nginx
+
+RUN mkdir -p /etc/nginx/ssl /var/www/html /run/nginx
+
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout /etc/nginx/ssl/inception.key \
+        -out /etc/nginx/ssl/inception.crt \
+        -subj "/C=NL/ST=NH/L=Oegstgeest/O=42/OU=Codam/CN=yaepark.42.fr"
+
+COPY nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 443
+
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+#daemon is foreground or background, daemon off is run as a foreground process

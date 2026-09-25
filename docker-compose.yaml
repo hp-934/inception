@@ -1,0 +1,52 @@
+#version: '2.20'
+services:
+  db:
+    image: inception-mariadb
+    restart: always
+    ports:
+      - 3306:3306
+    env_file:
+      - .db-env
+    networks:
+      - backend
+    volumes:
+      - maria-db:/var/lib/mysql
+  wordpress:
+    image: wordpress
+    #depends-on:
+    #  - db
+    restart: always
+    ports:
+      - 9000:80
+    #env_file:
+    #  - .db-env
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: user
+      WORDPRESS_DB_PASSWORD: password
+      WORDPRESS_DB_NAME: wordpress
+    networks:
+      - backend
+      - frontend
+    volumes:
+      - wordpress:/var/www/html
+  web:
+    image: inception-nginx
+    #depends-on:
+    #  - wordpress
+    restart: always
+    networks:
+      - frontend
+      - backend
+    ports:
+      - 443:443
+
+volumes:
+  wordpress:
+  maria-db:
+
+networks:
+  frontend:
+    driver: bridge   # connect to host network
+  backend:
+    internal: true   # only connect to other containers on this network
